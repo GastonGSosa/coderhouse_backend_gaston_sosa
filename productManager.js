@@ -1,6 +1,16 @@
 import fs from "fs";
 
 
+class Teja {
+    constructor (title,description, price, thumbnail, stock) {
+        this.title = title,
+        this.description = description,
+        this.price = price,
+        this.thumbnail = thumbnail,
+        this.stock = stock
+    }
+}
+
 
 class ProductManager {
     #products
@@ -10,8 +20,13 @@ class ProductManager {
 
     constructor(path){
         this.#path=path
-        this.#products=[]
-        this.#idCounter=1
+        if (fs.existsSync('./products.json')){
+            this.loadProducts()
+            this.#idCounter= this.#products.length-1
+        } else {
+            this.#products=[]
+            this.#idCounter=1
+        }
     }
     makeUniqueCode = (length) => {
         var result           = '';
@@ -38,6 +53,7 @@ class ProductManager {
     };
 
     getProducts() {
+        this.loadProducts()
         console.table(this.#products)
         return this.#products
     }
@@ -48,7 +64,7 @@ class ProductManager {
 
     async saveProducts() {
         try {
-          const productsData = JSON.stringify(this.#products);
+          const productsData = JSON.stringify(this.#products,null,"\t");
           await fs.promises.writeFile(this.#path, productsData, 'utf-8');
           console.log('Products saved successfully.');
         } catch (err) {
@@ -59,7 +75,7 @@ class ProductManager {
       async loadProducts() {
         try {
           const productsData = await fs.promises.readFile(this.#path);
-          this.#products = JSON.parse(productsData);
+          this.#products = [JSON.parse(productsData)];
           console.log('Products loaded successfully.');
         } catch (err) {
           console.error('Error loading products:', err);
@@ -84,21 +100,44 @@ class ProductManager {
         this.saveProducts();
     };
 
-    deleteProduct(id){
-        const productToDelete = this.#products.find((product)=>product.id===id)
-
+    deleteProduct(id) {
+        const productToDelete = this.#products.find((product) => product.id === id);
+      
         if (!productToDelete) {
-            console.error(`No existe un producto con el id: ${id}`)
+          console.error(`No existe un producto con el id: ${id}`);
         } else {
-            this.#products= this.#products.filter(item=>item.id===id)
-            console.log(`El product con el id: ${id} fue eliminado.`)
-            this.saveProducts();
+          this.#products = this.#products.filter((item) => item.id !== id);
+          console.log(`El producto con el id: ${id} fue eliminado.`);
+          this.saveProducts();
         }
-
-    }
+      }
 
     
 };
+
+const tejaManager = new ProductManager('./products.json')
+
+let teja1= new Teja ("teja española", "Teja curva", 350, "espanola.jpg",500)
+let teja2= new Teja ("teja francesa", "Teja recta", 500, "francesa.jpg",1500)
+let teja3= new Teja ("teja italiana", "Teja recta corta", 250, "tana.jpg",25000)
+let teja4= new Teja ("teja plastica recta", "Teja plastica recta", 350, "plastica1.jpg",5500)
+let teja5= new Teja ("teja plastica curva", "Teja plastica curva", 350, "plastica2.jpg",5000)
+let teja6= new Teja ("teja metal corta", "Teja metalica corta", 650, "metal corta.jpg",300)
+let teja7= new Teja ("teja metal larga", "Teja metalica larga", 600, "metal larga.jpg",350)
+let teja8= new Teja ("teja ecologica", "Teja ecologica", 800, "eco.jpg",150)
+let teja9= new Teja ("teja española esmaltada", "Teja curva esmaltada", 550, "espanola esmaltada.jpg",500)
+let teja10= new Teja ("teja francesa esmaltada", "Teja recta esmaltada", 850, "francesa esmaltada.jpg",1500)
+const tejas = [teja1,teja2,teja3, teja4,teja5,teja6,teja7,teja8,teja9,teja10]
+
+
+for (const i in tejas) {
+    tejaManager.addProduct(tejas[i])
+}
+
+tejaManager.getProducts()
+
+
+
 
 
 
